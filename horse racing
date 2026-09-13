@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏇 Horse Racing Game</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg, #102a43, #243b53);
+        color: white;
+        text-align: center;
+        min-height: 100vh;
+        padding: 20px;
+    }
+
+    h1 {
+        font-size: 2.5rem;
+        margin-bottom: 5px;
+    }
+
+    .subtitle {
+        color: #bcccdc;
+        margin-bottom: 25px;
+    }
+
+    .game-container {
+        max-width: 1100px;
+        margin: auto;
+    }
+
+    .controls {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 25px;
+    }
+
+    button {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    #startBtn {
+        background: #38a169;
+        color: white;
+    }
+
+    #resetBtn {
+        background: #e53e3e;
+        color: white;
+    }
+
+    button:hover {
+        transform: scale(1.05);
+        opacity: 0.9;
+    }
+
+    button:disabled {
+        background: #718096;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .race-track {
+        background: #276749;
+        border: 8px solid #8b5e3c;
+        border-radius: 15px;
+        overflow: hidden;
+        position: relative;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    .track-header {
+        background: #1a4731;
+        padding: 12px;
+        font-weight: bold;
+        letter-spacing: 2px;
+    }
+
+    .lane {
+        height: 90px;
+        position: relative;
+        border-bottom: 3px dashed rgba(255,255,255,0.5);
+        overflow: hidden;
+    }
+
+    .lane:last-child {
+        border-bottom: none;
+    }
+
+    .lane-number {
+        position: absolute;
+        left: 10px;
+        top: 8px;
+        font-size: 13px;
+        color: #d9f99d;
+        z-index: 2;
+    }
+
+    .horse {
+        position: absolute;
+        left: 10px;
+        bottom: 12px;
+        font-size: 42px;
+        z-index: 3;
+        transition: left 0.05s linear;
+        filter: drop-shadow(2px 3px 2px rgba(0,0,0,0.4));
+    }
+
+    .horse-name {
+        position: absolute;
+        left: 60px;
+        bottom: 8px;
+        font-size: 12px;
+        font-weight: bold;
+        color: white;
+        opacity: 0.9;
+    }
+
+    .finish-line {
+        position: absolute;
+        right: 65px;
+        top: 0;
+        bottom: 0;
+        width: 12px;
+        background: repeating-linear-gradient(
+            45deg,
+            white 0px,
+            white 8px,
+            black 8px,
+            black 16px
+        );
+        z-index: 4;
+    }
+
+    .finish-label {
+        position: absolute;
+        right: 35px;
+        top: 5px;
+        transform: translateX(50%);
+        font-size: 11px;
+        font-weight: bold;
+        color: #fff;
+        z-index: 5;
+    }
+
+    .status {
+        margin-top: 25px;
+        font-size: 1.3rem;
+        min-height: 35px;
+        font-weight: bold;
+    }
+
+    .winner {
+        color: #fbd38d;
+        animation: celebrate 0.8s infinite alternate;
+    }
+
+    @keyframes celebrate {
+        from { transform: scale(1); }
+        to { transform: scale(1.08); }
+    }
+
+    .leaderboard {
+        margin: 25px auto 0;
+        max-width: 500px;
+        background: rgba(255,255,255,0.08);
+        border-radius: 12px;
+        padding: 15px;
+        text-align: left;
+    }
+
+    .leaderboard h2 {
+        text-align: center;
+        margin-top: 0;
+    }
+
+    .result {
+        padding: 8px;
+        border-bottom: 1px solid rgba(255,255,255,0.15);
+    }
+
+    .result:last-child {
+        border-bottom: none;
+    }
+
+    @media (max-width: 600px) {
+        h1 {
+            font-size: 1.8rem;
+        }
+
+        .lane {
+            height: 75px;
+        }
+
+        .horse {
+            font-size: 32px;
+        }
+
+        .horse-name {
+            left: 50px;
+            font-size: 10px;
+        }
+
+        .finish-line {
+            right: 35px;
+        }
+
+        .finish-label {
+            right: 15px;
+        }
+    }
+</style>
+</head>
+
+<body>
+
+<div class="game-container">
+    <h1>🏇 Grand Horse Racing</h1>
+    <p class="subtitle">Choose your favorite horse and watch the race!</p>
+
+    <div class="controls">
+        <button id="startBtn" onclick="startRace()">🏁 Start Race</button>
+        <button id="resetBtn" onclick="resetRace()">🔄 Reset</button>
+    </div>
+
+    <div class="race-track">
+        <div class="track-header">🏆 RACE TRACK 🏆</div>
+
+        <div class="finish-line"></div>
+        <div class="finish-label">FINISH</div>
+
+        <div class="lane">
+            <span class="lane-number">LANE 1</span>
+            <div class="horse" id="horse0">🐎</div>
+            <div class="horse-name">Thunder</div>
+        </div>
+
+        <div class="lane">
+            <span class="lane-number">LANE 2</span>
+            <div class="horse" id="horse1">🐎</div>
+            <div class="horse-name">Lightning</div>
+        </div>
+
+        <div class="lane">
+            <span class="lane-number">LANE 3</span>
+            <div class="horse" id="horse2">🐎</div>
+            <div class="horse-name">Storm</div>
+        </div>
+
+        <div class="lane">
+            <span class="lane-number">LANE 4</span>
+            <div class="horse" id="horse3">🐎</div>
+            <div class="horse-name">Blaze</div>
+        </div>
+    </div>
+
+    <div class="status" id="status">
+        Press Start Race to begin!
+    </div>
+
+    <div class="leaderboard">
+        <h2>🏆 Race Results</h2>
+        <div id="results">No race completed yet.</div>
+    </div>
+</div>
+
+<script>
+    const horseNames = ["Thunder", "Lightning", "Storm", "Blaze"];
+
+    let positions = [0, 0, 0, 0];
+    let speeds = [0, 0, 0, 0];
+    let raceRunning = false;
+    let raceInterval;
+    let finishOrder = [];
+
+    function startRace() {
+        if (raceRunning) return;
+
+        raceRunning = true;
+        finishOrder = [];
+        positions = [10, 10, 10, 10];
+
+        document.getElementById("startBtn").disabled = true;
+        document.getElementById("status").textContent = "🏇 The race has started!";
+
+        // Give every horse a slightly different random speed
+        speeds = horseNames.map(() => 2.5 + Math.random() * 2.5);
+
+        raceInterval = setInterval(updateRace, 50);
+    }
+
+    function updateRace() {
+        const track = document.querySelector(".race-track");
+        const trackWidth = track.clientWidth;
+
+        // Distance available before the finish line
+        const finishDistance = trackWidth - 95;
+
+        let leadingIndex = -1;
+        let leadingPos = -1;
+
+        for (let i = 0; i < horseNames.length; i++) {
+            if (finishOrder.includes(i)) continue;
+
+            // Random speed variation makes the race exciting
+            positions[i] += speeds[i] + (Math.random() - 0.48) * 1.5;
+
+            const horse = document.getElementById("horse" + i);
+            horse.style.left = Math.min(positions[i], finishDistance) + "px";
+
+            if (positions[i] > leadingPos && !finishOrder.includes(i)) {
+                leadingPos = positions[i];
+                leadingIndex = i;
+            }
+
+            if (positions[i] >= finishDistance) {
+                finishOrder.push(i);
+                horse.style.left = finishDistance + "px";
+            }
+        }
+
+        if (finishOrder.length === 0 && leadingIndex !== -1) {
+            document.getElementById("status").textContent =
+                "⚡ " + horseNames[leadingIndex] + " is currently in the lead!";
+        } else if (finishOrder.length > 0 && finishOrder.length < horseNames.length) {
+            document.getElementById("status").textContent =
+                "🥇 " + horseNames[finishOrder[0]] + " crossed first! Other runners still racing...";
+        }
+
+        if (finishOrder.length === horseNames.length) {
+            endRace();
+        }
+    }
+
+    function endRace() {
+        clearInterval(raceInterval);
+        raceRunning = false;
+
+        const winner = horseNames[finishOrder[0]];
+
+        document.getElementById("status").innerHTML =
+            "🎉 <span class='winner'>" + winner + " WINS THE RACE!</span> 🎉";
+
+        document.getElementById("startBtn").disabled = false;
+
+        let html = "";
+        finishOrder.forEach((horseIndex, position) => {
+            const medals = ["🥇", "🥈", "🥉", "🏅"];
+            html += `
+                <div class="result">
+                    ${medals[position]} ${position + 1}. 
+                    <strong>${horseNames[horseIndex]}</strong>
+                </div>
+            `;
+        });
+
+        document.getElementById("results").innerHTML = html;
+    }
+
+    function resetRace() {
+        clearInterval(raceInterval);
+        raceRunning = false;
+        positions = [0, 0, 0, 0];
+        finishOrder = [];
+
+        for (let i = 0; i < horseNames.length; i++) {
+            document.getElementById("horse" + i).style.left = "10px";
+        }
+
+        document.getElementById("status").textContent =
+            "Press Start Race to begin!";
+
+        document.getElementById("results").textContent =
+            "No race completed yet.";
+
+        document.getElementById("startBtn").disabled = false;
+    }
+</script>
+
+</body>
+</html>
